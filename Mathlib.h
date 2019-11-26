@@ -7,19 +7,19 @@
 
 
 #ifdef _MATHLIB_USE_DOUBLE
-#define _m_drtype double
+#define _m_d_float double
 #define _m_sqrt sqrt
 #define _m_pow pow
 #else
-#define _m_drtype float
+#define _m_d_float float
 #define _m_sqrt sqrtf
 #define _m_pow powf
 #endif
 
 #ifdef _MATHLIB_USE_LONGINT
-#define _m_ditype long int
+#define _m_d_int long int
 #else
-#define _m_ditype int
+#define _m_d_int int
 #endif
 
 namespace mathlib
@@ -28,8 +28,8 @@ namespace mathlib
 	{
 		class Vector2 {
 		public:
-			_m_drtype x;
-			_m_drtype y;
+			_m_d_float x;
+			_m_d_float y;
 
 			//Constants
 			static const Vector2 zero;
@@ -37,7 +37,7 @@ namespace mathlib
 
 			//Operators
 
-			_m_drtype magnitude() const {
+			_m_d_float magnitude() const {
 				return _m_sqrt(_m_pow(x, 2) + _m_pow(y, 2));
 			}
 
@@ -47,7 +47,7 @@ namespace mathlib
 				return unit;
 			}
 
-			_m_drtype ScalarProduct(Vector2 v) {
+			_m_d_float ScalarProduct(Vector2 v) {
 				return x * v.x + y + v.y;
 			}
 
@@ -73,13 +73,13 @@ namespace mathlib
 				return *this;
 			}
 
-			Vector2& operator*=(_m_drtype k) {
+			Vector2& operator*=(_m_d_float k) {
 				x *= k;
 				y *= k;
 				return *this;
 			}
 
-			Vector2& operator/=(_m_drtype k) {
+			Vector2& operator/=(_m_d_float k) {
 				x /= k;
 				y /= k;
 				return *this;
@@ -102,7 +102,7 @@ namespace mathlib
 			}
 
 			Vector2() : x(0), y(0) {}
-			Vector2(_m_drtype _x, _m_drtype _y) : x(_x), y(_y) {}
+			Vector2(_m_d_float _x, _m_d_float _y) : x(_x), y(_y) {}
 			Vector2(const Vector2& vector) : x(vector.x), y(vector.y) {}
 		};
 		const Vector2 Vector2::zero = Vector2(0, 0);
@@ -318,18 +318,18 @@ namespace mathlib
 		//Testing
 		class RationalNumber {
 		public:
-			_m_ditype numerator, denominator;
+			_m_d_int numerator, denominator;
 
-			_m_drtype estimate() const {
+			_m_d_float estimate() const {
 				if (denominator == 0)
 					throw std::runtime_error("Mathlib divide by zero");
-				return (_m_drtype)numerator / denominator;
+				return (_m_d_float)numerator / denominator;
 			}
 
 			void reduct() {
 				if (abs(numerator) == 1)
 					return;
-				const _m_ditype _gcd = functions::gcd(numerator, denominator);
+				const _m_d_int _gcd = functions::gcd(numerator, denominator);
 				if (_gcd == 1)
 					return;
 				numerator /= _gcd;
@@ -354,7 +354,7 @@ namespace mathlib
 
 				if (denominator == num.denominator)
 					return RationalNumber(numerator + num.numerator, denominator);
-				const _m_ditype _lcm = functions::lcm(abs(denominator), abs(num.denominator));
+				const _m_d_int _lcm = functions::lcm(abs(denominator), abs(num.denominator));
 				return RationalNumber(numerator*(_lcm/num.denominator)+ num.numerator * (_lcm / denominator), _lcm);
 			}
 
@@ -364,7 +364,7 @@ namespace mathlib
 
 				if (denominator == num.denominator)
 					return RationalNumber(numerator - num.numerator, denominator);
-				const _m_ditype _lcm = functions::lcm(abs(denominator), abs(num.denominator));
+				const _m_d_int _lcm = functions::lcm(abs(denominator), abs(num.denominator));
 				return RationalNumber(numerator*(_lcm / num.denominator) - num.numerator * (_lcm / denominator), _lcm);
 
 			}
@@ -389,12 +389,12 @@ namespace mathlib
 
 			RationalNumber& operator+=(const RationalNumber& num) {
 				if (denominator*num.denominator == 0)
-					throw std::runtime_error("Mathlib divide by zero");
+					throw std::runtime_error("Mathlib zero in denominator");
 
 				if (denominator == num.denominator)
 					numerator += num.numerator;
 				else {
-					const _m_ditype _lcm = functions::lcm(abs(denominator), abs(num.denominator));
+					const _m_d_int _lcm = functions::lcm(abs(denominator), abs(num.denominator));
 					numerator = numerator * (_lcm / num.denominator) + num.numerator * (_lcm / denominator);
 					denominator = _lcm;
 				}
@@ -403,15 +403,43 @@ namespace mathlib
 
 			RationalNumber& operator-=(const RationalNumber& num) {
 				if (denominator*num.denominator == 0)
-					throw std::runtime_error("Mathlib divide by zero");
+					throw std::runtime_error("Mathlib zero in denominator");
 				
 				if (denominator == num.denominator)
 					numerator -= num.numerator;
 				else {
-					const _m_ditype _lcm = functions::lcm(abs(denominator), abs(num.denominator));
+					const _m_d_int _lcm = functions::lcm(abs(denominator), abs(num.denominator));
 					numerator = numerator * (_lcm / num.denominator) - num.numerator * (_lcm / denominator);
 					denominator = _lcm;
 				}
+				return *this;
+			}
+
+			RationalNumber& operator+=(const _m_d_int& k) {
+				numerator += k * denominator;
+				return *this;
+			}
+
+			RationalNumber& operator-=(const _m_d_int& k) {
+				numerator -= k * denominator;
+				return *this;
+			}
+
+			RationalNumber& operator*=(const _m_d_int& k) {
+				numerator *= k;
+				return *this;
+			}
+
+			RationalNumber& operator/=(const _m_d_int& k) {
+				if (k == 0)
+					throw std::runtime_error("Mathlib divide by zero");
+				if (k < 0)
+				{
+					denominator *= -k;
+					numerator *= -1;
+				}
+				else
+					denominator *= k;
 				return *this;
 			}
 
@@ -420,12 +448,12 @@ namespace mathlib
 				denominator = 1;
 			}
 
-			RationalNumber(_m_ditype number) {
+			RationalNumber(_m_d_int number) {
 				numerator = number;
 				denominator = 1;
 			}
 
-			RationalNumber(_m_ditype nu, _m_ditype de) {
+			RationalNumber(_m_d_int nu, _m_d_int de) {
 				numerator = nu;
 				denominator = de;
 			}
