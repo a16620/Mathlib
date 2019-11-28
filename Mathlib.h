@@ -4,7 +4,7 @@
 #include <math.h>
 #include <stdexcept>
 #include <vector>
-
+#include <iostream>
 
 #ifdef _MATHLIB_USE_DOUBLE
 #define _m_d_float double
@@ -24,6 +24,102 @@
 
 namespace mathlib
 {
+	namespace functions //Testing
+	{
+		std::vector<unsigned long> getFactors(unsigned long n) {
+			if (n <= 1) {
+				return std::vector <unsigned long>(1);
+			}
+			std::vector<unsigned long> factors;
+			unsigned int cfactor = 2;
+			while (true) {
+				if (n <= cfactor) {
+					factors.push_back(n);
+					break;
+				}
+				if (n % cfactor != 0) {
+					cfactor++;
+				}
+				else {
+					factors.push_back(cfactor);
+					n /= cfactor;
+				}
+			}
+			return factors;
+		}
+
+		template<typename T>
+		void minmax(T& big, T& small) {
+			if (small > big)
+			{
+				T tmp = big;
+				big = small;
+				small = tmp;
+			}
+		}
+
+		int gcd(int a, int b) {
+			if (a == b)
+				return a;
+			minmax(a, b);
+
+			while (b != 0) {
+				int r = a % b;
+				a = b;
+				b = r;
+			}
+			return a;
+		}
+
+		int lcm(int a, int b) {
+			return (a * b) / gcd(a, b);
+		}
+
+		template <typename T>
+		T median(std::vector<T> v, bool isSorted = false) {
+			if (!isSorted) {
+				std::sort(v.begin(), v.end());
+			}
+			if (v.size() % 2 == 0) {
+				int i = v.size() / 2;
+				return (v[i] + v[i + 1]) / 2;
+			}
+			else {
+				return v[((v.size() - 1) / 2) + 1];
+			}
+		}
+
+		//reflexive
+		unsigned long _rfx_factorial(unsigned long n) {
+			if (n <= 1)
+				return 1;
+			return n * _rfx_factorial(n - 1);
+		}
+
+		unsigned long factorial(unsigned long n) {
+			if (n < 2)
+				return 1;
+			unsigned long o = 1;
+			for (int i = n; i != 1; i--) {
+				o *= i;
+			}
+			return o;
+		}
+
+		std::vector<unsigned long> factorialvector(unsigned long n) {
+			if (n < 2)
+				return std::vector<unsigned long>(1);
+			std::vector<unsigned long> o;
+			for (int i = n; i != 0; i--) {
+				o.push_back(i);
+			}
+			return o;
+		}
+
+		inline unsigned long sigma(unsigned long k) {
+			return (k*(k + 1)) / 2;
+		}
+	}
 	namespace numbers
 	{
 		class Vector2 {
@@ -124,7 +220,6 @@ namespace mathlib
 			//(row, column)
 			Matrix(int row, int column) : dimX(column), dimY(row) {
 				pMatrix = new T[dimX*dimY];
-				const int && szByte = dimX * dimY * sizeof(T);
 			}
 
 			Matrix(const Matrix& matrix) : dimX(matrix.dimX), dimY(matrix.dimY) {
@@ -282,7 +377,7 @@ namespace mathlib
 					for (int y = 0; y < dimY; ++y)
 					{
 						int && c = (x + dimX * y);
-						*(pMatrix + c) = *(pMatrix + c) * *(mat.pMatrix + c);
+						*(pMatrix + c) = *(pMatrix + c) * k;
 					}
 				}
 				return *this;
@@ -313,7 +408,22 @@ namespace mathlib
 				}
 				return mat;
 			}
+
+			template<typename Ty>
+			friend std::ostream& operator<<(std::ostream& os, const Matrix<Ty>& mat);
 		};
+
+		template<typename Ty>
+		std::ostream& operator<<(std::ostream& os, const Matrix<Ty>& mat) {
+			for (int i = 0; i < mat.dimY; ++i) {
+				os << "\n";
+				for (int j = 0; j < mat.dimX; ++j) {
+					os << *(mat.pMatrix + (j + mat.dimX * i)) << ' ';
+				}
+				os << "\n";
+			}
+			return os;
+		}
 
 		//Testing
 		class RationalNumber {
@@ -355,7 +465,7 @@ namespace mathlib
 				if (denominator == num.denominator)
 					return RationalNumber(numerator + num.numerator, denominator);
 				const _m_d_int _lcm = functions::lcm(abs(denominator), abs(num.denominator));
-				return RationalNumber(numerator*(_lcm/num.denominator)+ num.numerator * (_lcm / denominator), _lcm);
+				return RationalNumber(numerator*(_lcm/denominator)+ num.numerator * (_lcm / num.denominator), _lcm);
 			}
 
 			const RationalNumber operator-(const RationalNumber& num) const {
@@ -365,8 +475,7 @@ namespace mathlib
 				if (denominator == num.denominator)
 					return RationalNumber(numerator - num.numerator, denominator);
 				const _m_d_int _lcm = functions::lcm(abs(denominator), abs(num.denominator));
-				return RationalNumber(numerator*(_lcm / num.denominator) - num.numerator * (_lcm / denominator), _lcm);
-
+				return RationalNumber(numerator*(_lcm / denominator) - num.numerator * (_lcm / num.denominator), _lcm);
 			}
 
 			RationalNumber& operator=(const RationalNumber& num) {
@@ -395,7 +504,7 @@ namespace mathlib
 					numerator += num.numerator;
 				else {
 					const _m_d_int _lcm = functions::lcm(abs(denominator), abs(num.denominator));
-					numerator = numerator * (_lcm / num.denominator) + num.numerator * (_lcm / denominator);
+					numerator = numerator * (_lcm / denominator) + num.numerator * (_lcm / num.denominator);
 					denominator = _lcm;
 				}
 				return *this;
@@ -409,7 +518,7 @@ namespace mathlib
 					numerator -= num.numerator;
 				else {
 					const _m_d_int _lcm = functions::lcm(abs(denominator), abs(num.denominator));
-					numerator = numerator * (_lcm / num.denominator) - num.numerator * (_lcm / denominator);
+					numerator = numerator * (_lcm / denominator) - num.numerator * (_lcm / num.denominator);
 					denominator = _lcm;
 				}
 				return *this;
@@ -443,6 +552,38 @@ namespace mathlib
 				return *this;
 			}
 
+			const RationalNumber operator+(const _m_d_int& k) {
+				RationalNumber n(numerator, denominator);
+				n.numerator += k * n.denominator;
+				return n;
+			}
+
+			const RationalNumber operator-(const _m_d_int& k) {
+				RationalNumber n(numerator, denominator);
+				n.numerator -= k * n.denominator;
+				return n;
+			}
+
+			const RationalNumber operator*(const _m_d_int& k) {
+				RationalNumber n(numerator, denominator);
+				n.numerator *= k;
+				return n;
+			}
+
+			const RationalNumber operator/(const _m_d_int& k) {
+				if (k == 0)
+					throw std::runtime_error("Mathlib divide by zero");
+				RationalNumber n(numerator, denominator);
+				if (k < 0)
+				{
+					n.denominator *= -k;
+					n.numerator *= -1;
+				}
+				else
+					n.denominator *= k;
+				return n;
+			}
+
 			RationalNumber() {
 				numerator = 0;
 				denominator = 1;
@@ -457,108 +598,20 @@ namespace mathlib
 				numerator = nu;
 				denominator = de;
 			}
+
+			friend std::ostream& operator<<(std::ostream& os, const RationalNumber& rn);
 		};
+
+		std::ostream& operator<<(std::ostream& os, const RationalNumber& rn) {
+			//os << rn.numerator << '/' << rn.denominator;
+			os << rn.estimate();
+			return os;
+		}
 
 		typedef RationalNumber Fraction;
 
 		class RealNumber {
 
 		};
-	}
-	namespace functions //Testing
-	{
-		std::vector<unsigned long> getFactors(unsigned long n) {
-			if (n <= 1) {
-				return std::vector <unsigned long>(1);
-			}
-			std::vector<unsigned long> factors;
-			unsigned int cfactor = 2;
-			while (true) {
-				if (n <= cfactor) {
-					factors.push_back(n);
-					break;
-				}
-				if (n % cfactor != 0) {
-					cfactor++;
-				}
-				else {
-					factors.push_back(cfactor);
-					n /= cfactor;
-				}
-			}
-			return factors;
-		}
-
-		template<typename T>
-		void minmax(T& big, T& small) {
-			if (small > big)
-			{
-				T tmp = big;
-				big = small;
-				small = tmp;
-			}
-		}
-
-		int gcd(int a, int b) {
-			if (a == b)
-				return a;
-			minmax(a, b);
-
-			while (b != 0) {
-				int r = a % b;
-				a = b;
-				b = r;
-			}
-			return a;
-		}
-
-		int lcm(int a, int b) {
-			return (a * b) / gcd(a, b);
-		}
-
-		template <typename T>
-		T median(std::vector<T> v, bool isSorted = false) {
-			if (!isSorted) {
-				std::sort(v.begin(), v.end());
-			}
-			if (v.size() % 2 == 0) {
-				int i = v.size() / 2;
-				return (v[i] + v[i + 1]) / 2;
-			}
-			else {
-				return v[((v.size() - 1) / 2) + 1];
-			}
-		}
-
-		//reflexive
-		unsigned long _rfx_factorial(unsigned long n) {
-			if (n <= 1)
-				return 1;
-			return n * _rfx_factorial(n - 1);
-		}
-
-		unsigned long factorial(unsigned long n) {
-			if (n < 2)
-				return 1;
-			unsigned long o = 1;
-			for (int i = n; i != 1; i--) {
-				o *= i;
-			}
-			return o;
-		}
-
-		std::vector<unsigned long> factorialvector(unsigned long n) {
-			if (n < 2)
-				return std::vector<unsigned long>(1);
-			std::vector<unsigned long> o;
-			for (int i = n; i != 0; i--) {
-				o.push_back(i);
-			}
-			return o;
-		}
-
-		inline unsigned long sigma(unsigned long k) {
-			return (k*(k + 1)) / 2;
-		}
 	}
 }
